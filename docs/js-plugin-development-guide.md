@@ -98,24 +98,114 @@ globalThis.onDeinit = onDeinit;
 globalThis.onHTTPRequest = onHTTPRequest;
 ```
 
-### Step 3: 构建
+### Step 3: 启动开发模式（推荐）
 
 ```bash
-pnpm run build
+pnpm run dev          # 等价于 mimusic-plugin dev
+```
+
+首次运行会交互式询问 MiMusic 实例地址、用户名与密码，之后：
+
+1. 把账号密码写入项目根目录的 `.mimusic-dev.json`（builder 会自动把它追加到 `.gitignore`），后续运行直接静默登录；
+2. 立即执行一次构建并上传，首次安装时自动启用插件；
+3. 监听 `src/`、`static/`、`plugin.json`，源码变更时自动重建上传，已激活的插件会被后端自动热重载。
+
+> Token 不缓存：每次会话用账号密码即时登录，因此无需关心 token 过期 / 刷新。要换帐号或改密码，编辑（或直接删除）`.mimusic-dev.json` 即可。
+
+控制台会打印插件的访问入口（例如 `http://localhost:58091/api/v1/jsplugin/<entryPath>/`），按 `Ctrl+C` 退出。
+
+> 开发模式的详细 CLI 选项、环境变量与配置文件字段见下文 [开发模式详解](#开发模式详解-mimusic-plugin-dev)。
+
+### Step 4: 构建生产包
+
+发布前生成可分发的 `.jsplugin.zip`：
+
+```bash
+pnpm run build        # 等价于 mimusic-plugin build
 ```
 
 builder 会：
 
 1. 用 esbuild 把 `src/main.ts` 打包为 `build/main.js`（`format: iife`, `target: es2020`，禁止引用 Node 内置模块）；
-2. 拷贝 `static/` 到 `build/`；
-3. 计算 `entryHash = sha256(main.js)` 与 `zipHash`（规范化算法，排除 `plugin.json` 自身），写回 `build/plugin.json`；
-4. 打包为 `dist/<entryPath>.jsplugin.zip`，并生成 `dist/<entryPath>.json` 远程元数据。
+2. 拷贝 `static/` 到 `build/`，并对 JS/CSS/字体/图片注入内容 hash（可在 `plugin.json` 中设置 `"staticHash": false` 关闭）；
+3. 若检测到可用的 `jsc` 工具，将 `main.js` 进一步编译为 `main.jsc` 字节码；
+4. 计算 `entryHash = sha256(main 文件)` 与 `zipHash`（规范化算法，排除 `plugin.json` 自身），写回 `build/plugin.json`；
+5. 打包为 `dist/<entryPath>.jsplugin.zip`，并生成 `dist/<entryPath>.json` 远程更新元数据。
 
-### Step 4: 上传安装
+### Step 5: 安装到目标实例
 
-通过 MiMusic 设置页面上传 `dist/<entryPath>.jsplugin.zip`，或直接将其放入 `data/jsplugins/` 目录。
+任选其一：
 
-安装后，插件 HTTP API 可通过 `/api/v1/jsplugins/<entryPath>/` 访问。
+- **开发模式自动上传** —— `pnpm run dev`（见 Step 3），适合本地迭代；
+- **设置页面上传** —— 在 MiMusic 客户端的插件管理页选择 `dist/<entryPath>.jsplugin.zip`；
+- **目录放置** —— 把 zip 放进服务器的 `data/jsplugins/` 目录，下次启动时自动扫描；
+- **API 上传** —— `POST /api/v1/jsplugins/upload`，multipart 字段名 `file`（开发模式底层即此接口）。
+
+安装后，插件的 HTTP API 通过 `/api/v1/jsplugin/<entryPath>/` 访问，静态资源通过 `/api/v1/jsplugin/<entryPath>/static/...` 访问。
+
+### 开发模式详解 (mimusic-plugin dev)
+
+`mimusic-plugin dev` 把"构建 → 上传 → 热重载"压缩成一个常驻命令，适合本地开发与远程实例联调。
+
+#### 默认行为
+
+| 阶段 | 行为 |
+|------|------|
+| 启动 | 读取 `.mimusic-dev.json`，缺失 `username` / `password` 时交互式询问，登录成功后落地保存 |
+| 登录策略 | 不缓存 token；每次启动用账号密码即时登录，会话期间出现 `401` 时自动用同一密码重登 |
+| 首次上传 | 调用 `POST /api/v1/jsplugins/upload`，新装后自动调用 `enable` |
+| 后续上传 | 同一 `entryPath` 复用 upload 接口，由后端识别为覆盖更新；插件处于活跃状态时自动热重载 |
+| 文件监听 | 监听 `src/`、`static/`、`plugin.json`，250ms debounce 触发增量构建 |
+| 密码失效 | 若服务器拒绝缓存的密码（如已被修改），自动清除 `.mimusic-dev.json` 中的 `password` 字段并提示重新运行 |
+
+#### CLI 选项
+
+```text
+mimusic-plugin dev [options]
+
+--host <url>        MiMusic 实例 URL（默认 http://localhost:58091，
+                    亦可读 $MIMUSIC_HOST 或 .mimusic-dev.json）
+--username <name>   登录用户名（或 $MIMUSIC_USER）
+--password <pwd>    登录密码（或 $MIMUSIC_PASSWORD；缺省时静默提示输入）
+--token <jwt>       直接使用预签发的 access token（或 $MIMUSIC_TOKEN）
+--once              构建+上传一次后退出，跳过 watch
+--no-enable         首次安装后不自动启用插件
+```
+
+#### 环境变量
+
+| 变量 | 等价选项 |
+|------|----------|
+| `MIMUSIC_HOST` | `--host` |
+| `MIMUSIC_USER` | `--username` |
+| `MIMUSIC_PASSWORD` | `--password` |
+| `MIMUSIC_TOKEN` | `--token` |
+
+#### `.mimusic-dev.json` 字段
+
+dev 命令自动在项目根目录维护下面的配置文件（同时把它追加到 `.gitignore`）：
+
+```json
+{
+  "host": "http://localhost:58091",
+  "username": "admin",
+  "password": "your-password",
+  "pluginId": 12,
+  "entryPath": "my-plugin"
+}
+```
+
+| 字段 | 写入时机 | 说明 |
+|------|----------|------|
+| `host` | 首次启动 | MiMusic 实例 URL |
+| `username` / `password` | 首次启动交互输入后写入，亦可手填 | 用于每次会话登录；明文存储，**切勿提交** |
+| `pluginId` / `entryPath` | 首次上传后写入 | 仅供参考，dev 命令实际通过 `entryPath` 与后端对账 |
+
+> 不存在 `accessToken` / `refreshToken` 字段：dev 命令不缓存 token。
+>
+> 不想让密码明文落地？改用 `--token <jwt>` 或 `$MIMUSIC_TOKEN` 提供预签发的 access token；token 模式下不会读写 `.mimusic-dev.json` 中的凭据字段。
+>
+> 删除整个文件等同于重置登录状态。
 
 ---
 
@@ -520,13 +610,17 @@ my-plugin/
 
 ### 访问路径
 
-安装后，静态文件通过以下路径访问：
+安装后，静态文件通过以下路径访问（注意：运行时路由是单数 `jsplugin`，与管理 API `/api/v1/jsplugins`（复数）不同）：
 
 ```
-/api/v1/jsplugins/{entryPath}/static/{filename}
+GET /api/v1/jsplugin/{entryPath}/                 → static/index.html（自动注入 <base>）
+GET /api/v1/jsplugin/{entryPath}/static           → static/index.html
+GET /api/v1/jsplugin/{entryPath}/static/<file>    → 任意静态资源
 ```
 
-例如：`/api/v1/jsplugins/my-plugin/static/index.html`
+例如：`/api/v1/jsplugin/my-plugin/static/style.css`
+
+> 后端在返回 `index.html` 时自动注入 `<base href="/api/v1/jsplugin/{entryPath}/">`，因此 HTML 中可直接用相对路径引用 `static/...` 和插件 API；同时还会注入一段 fetch 拦截脚本，在插件正在热重载（HTTP 503 `plugin_unavailable`）时静默重试。
 
 ### 在 HTML 中调用插件 API
 
@@ -618,14 +712,18 @@ ZIP 文件名格式：`{entryPath}.jsplugin.zip`
 
 ### 安装方式
 
-1. **UI 上传**：通过设置页面的插件管理上传 ZIP
-2. **目录放置**：将 ZIP 放入 `data/jsplugins/` 目录，服务启动时自动发现
-3. **API 上传**：调用 `/api/v1/plugins/js/upload` 接口
+1. **开发模式（推荐）**：`mimusic-plugin dev` 在本地迭代，参见 [§2.6](#26-开发模式详解-mimusic-plugin-dev)
+2. **UI 上传**：通过 MiMusic 客户端的设置页面 → 插件管理上传 ZIP
+3. **目录放置**：将 ZIP 放入服务器的 `data/jsplugins/` 目录，服务启动时自动发现
+4. **API 上传**：`POST /api/v1/jsplugins/upload`，multipart 字段名 `file`（开发模式底层即此接口）
 
 ### 更新已有插件
 
-- 上传相同 `entryPath` 的新版本 ZIP 执行更新
+- 重新上传同 `entryPath` 的新版本 ZIP 即可（`/upload` 端点同时处理新装与覆盖更新，由后端用响应状态码 `201` / `200` 区分）
+- 也可显式调用 `PUT /api/v1/jsplugins/{id}` 上传新 ZIP
 - 或直接替换 `data/jsplugins/` 目录中的 ZIP 文件
+
+无论哪种方式，原插件若处于 `active` 状态，更新成功后后端会自动触发热重载。
 
 ---
 
@@ -652,11 +750,11 @@ ZIP 文件名格式：`{entryPath}.jsplugin.zip`
 
 ### 手动触发
 
-通过 API 手动触发热更新：
+目前未提供独立的 `reload` 端点。重新触发热更新的常用做法：
 
-```
-POST /api/v1/plugins/js/{id}/reload
-```
+- **开发期**：保持 `mimusic-plugin dev` 运行，保存源码即可；
+- **运维**：重新上传同 `entryPath` 的 ZIP（`POST /api/v1/jsplugins/upload`）或调用 `PUT /api/v1/jsplugins/{id}`，后端在更新成功后会自动对处于 `active` 状态的插件触发热重载；
+- **远程更新**：调用 `POST /api/v1/jsplugins/{id}/update` 拉取 `updateUrl` 中的新版本，同样会自动热重载。
 
 ### 错误回滚
 
