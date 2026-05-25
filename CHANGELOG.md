@@ -1,3 +1,59 @@
+## [1.3.50] - 2026-05-25
+
+### ✨ Features
+
+- `37ac3b4` 支持网络歌曲转本地歌曲
+
+### 🔧 Chores
+
+- `923b254` release version 1.3.50
+
+## [1.3.49] - 2026-05-24
+
+### 🐛 Bug Fixes
+
+- `4a60ca1` 修复js插件休眠问题
+
+### 🔧 Chores
+
+- `6bcb020` release version 1.3.49
+
+## [1.3.48] - 2026-05-22
+
+### 🐛 Bug Fixes
+
+- `7d8999d` 修复js插件导致宕机问题
+
+### 🔧 Chores
+
+- `16754d4` release version 1.3.48
+
+## [1.3.47] - 2026-05-22
+
+### ✨ Features
+
+- `89eea57` js插件支持手动上传更新
+
+### 🐛 Bug Fixes
+
+- `bac969a` 修复编译警告
+- `53e19c0` 修复js异步问题
+
+### 🔧 Chores
+
+- `452aacb` release version 1.3.47
+
+## [1.3.46] - 2026-05-21
+
+### ✨ Features
+
+- `f7b47bc` js插件改成真异步环境
+- `65f1164` 优化插件不可用时的提示
+
+### 🔧 Chores
+
+- `3bd3a57` release version 1.3.46
+
 ## [1.3.45] - 2026-05-20
 
 ### ✨ Features
