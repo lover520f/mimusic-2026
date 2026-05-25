@@ -182,7 +182,7 @@ curl -X GET http://localhost:58091/api/v1/songs \
 音乐文件和封面图片使用 query 参数认证：
 ```
 http://localhost:58091/music/{base62_encoded_path}.mp3?access_token=YOUR_TOKEN
-http://localhost:58091/cover/{base62_encoded_path}.jpg?access_token=YOUR_TOKEN
+http://localhost:58091/api/v1/songs/{song_id}/cover?access_token=YOUR_TOKEN
 ```
 
 ### Q: 如何查看 API 文档？
