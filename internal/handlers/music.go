@@ -1625,13 +1625,25 @@ func (h *SongHandler) trySeekStream(w http.ResponseWriter, r *http.Request, song
 	if (opts.seekSeconds <= 0 && !speedRequested(opts.speed)) || h.cacheService == nil {
 		return false
 	}
-	// plan 传 nil：?seek= 与 Range 是两套并存的位置语义，这条路服务的推流客户端不发 Range。
+
+	plan := planCBRRange(r, song, opts)
+	if plan != nil && plan.unsatisfiable {
+		w.Header().Set("Content-Range", fmt.Sprintf("bytes */%d", plan.totalBytes))
+		respondError(w, http.StatusRequestedRangeNotSatisfiable, "range not satisfiable", nil)
+		return true
+	}
+
+	startSecond := opts.seekSeconds
+	if plan != nil && plan.partial {
+		startSecond += plan.startSecond
+	}
+
 	return h.streamPipedMP3(r.Context(), r.Context(), w, song, services.SeekStreamOptions{
 		SourcePath:      path,
-		StartSecond:     opts.seekSeconds,
-		RemainingSecond: remainingAfter(song, opts.seekSeconds),
+		StartSecond:     startSecond,
+		RemainingSecond: remainingAfter(song, startSecond),
 		Speed:           opts.speed,
-	}, nil, "seek stream")
+	}, plan, "seek stream")
 }
 
 // tryLiveTranscodeStream 在「这次播放需要转码但转码产物还没落盘」时边转边发一条 MP3 流，
@@ -1705,10 +1717,10 @@ func (h *SongHandler) tryLiveTranscodeStream(w http.ResponseWriter, r *http.Requ
 		return true
 	}
 
-	// 起播位置：Range 模式下由字节偏移换算而来，否则用 ?seek=（两者互斥，见 planCBRRange）。
+	// 起播位置：?seek= 的歌曲绝对位置 + Range 的流内字节偏移换算。两者正交叠加。
 	startSecond := opts.seekSeconds
 	if plan != nil && plan.partial {
-		startSecond = plan.startSecond
+		startSecond += plan.startSecond
 	}
 
 	return h.streamPipedMP3(trackedCtx, r.Context(), w, song, services.SeekStreamOptions{
@@ -1753,16 +1765,24 @@ func (p *cbrRangePlan) contentLength() int64 { return p.end - p.start + 1 }
 // planCBRRange 计算 pipe 流的 Range 应答计划；返回 nil 表示**不启用** Range 模式，
 // 保持原来的 chunked 无 Content-Length 行为。
 //
-// 四个前提缺一不可：
+// 三个前提缺一不可：
 //   - `song.Duration > 0`：总时长未知就估不出总字节（远程歌曲元数据未刷新时是常态）；
-//   - 目标是重编码而非 `-c:a copy`：copy 的源可能是 VBR mp3，字节与时间不成线性。
-//     本函数只服务 tryLiveTranscodeStream，它一律带 ForceTranscode（必然重编码 CBR）；
 //   - 不变速：atempo 改变输出时长，字节↔时间要再套一层换算，风险不值当，保持现状；
-//   - 无 `?seek=`：那是给「只会从头拉流、不支持 Range」的推流客户端表达位置的专用参数
-//     （songloft-plugin-miot#60），与 Range 是两套并存的位置语义，叠加只会互相干扰。
+//   - seek 后剩余时长 > 0：seekSeconds=0 时退化为全量。
+//
+// `?seek=` 与 Range 不再互斥：`?seek=N` 让 ffmpeg 从第 N 秒起产流，Range 在此基础上做
+// HTTP 层缓冲——两者正交。MIoT 音箱等推流客户端**会**发 Range（实测 206），
+// 缺少 Content-Length 时固件直接报播放失败（songloft-org/songloft#488）。
+//
+// seek 流走 `-c:a copy` 时输出可能是 VBR MP3，CBR 估算会偏差几个百分点，
+// 由 exactLengthWriter 兜底（多截少补零），与转码流已承认的残留同性质。
 func planCBRRange(r *http.Request, song *models.Song, opts servePlayOptions) *cbrRangePlan {
 	if song == nil || song.Duration <= 0 || song.Duration > maxRangeDurationSeconds ||
-		opts.seekSeconds > 0 || speedRequested(opts.speed) {
+		speedRequested(opts.speed) {
+		return nil
+	}
+	effectiveDuration := song.Duration - opts.seekSeconds
+	if effectiveDuration <= 0 {
 		return nil
 	}
 	bitrate := opts.bitrate
@@ -1770,7 +1790,7 @@ func planCBRRange(r *http.Request, song *models.Song, opts servePlayOptions) *cb
 		bitrate = services.DefaultPipeBitrateKbps
 	}
 	bps := int64(bitrate) * 1000 / 8
-	total := int64(song.Duration * float64(bps))
+	total := int64(effectiveDuration * float64(bps))
 	if total <= 0 {
 		return nil
 	}

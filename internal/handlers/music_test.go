@@ -849,8 +849,11 @@ func TestGetSongPlaySeekStreamsMP3(t *testing.T) {
 	if ct := rr.Header().Get("Content-Type"); ct != "audio/mpeg" {
 		t.Errorf("Content-Type=%q, 期望 audio/mpeg", ct)
 	}
-	if cl := rr.Header().Get("Content-Length"); cl != "" {
-		t.Errorf("Content-Length=%q, 期望为空（chunked 流）", cl)
+	if cl := rr.Header().Get("Content-Length"); cl != "5600000" {
+		t.Errorf("Content-Length=%q, 期望 5600000（140s × 320kbps/8）", cl)
+	}
+	if ar := rr.Header().Get("Accept-Ranges"); ar != "bytes" {
+		t.Errorf("Accept-Ranges=%q, 期望 bytes", ar)
 	}
 	if cc := rr.Header().Get("Cache-Control"); !strings.Contains(cc, "no-store") {
 		t.Errorf("Cache-Control=%q, 期望含 no-store", cc)
@@ -1215,6 +1218,19 @@ func TestPlanCBRRange(t *testing.T) {
 		}
 	})
 
+	t.Run("seek uses remaining duration", func(t *testing.T) {
+		p := planCBRRange(newReq(""), song, servePlayOptions{targetFormat: "mp3", speed: 1.0, seekSeconds: 30})
+		if p == nil {
+			t.Fatal("want range mode enabled for seek")
+		}
+		if p.totalBytes != 6_800_000 {
+			t.Errorf("totalBytes=%d, want 6800000 (170s × 40000 B/s)", p.totalBytes)
+		}
+		if p.partial {
+			t.Error("no Range header must not be 206")
+		}
+	})
+
 	t.Run("disabled when preconditions unmet", func(t *testing.T) {
 		cases := []struct {
 			name string
@@ -1222,7 +1238,6 @@ func TestPlanCBRRange(t *testing.T) {
 			opts servePlayOptions
 		}{
 			{"unknown duration", &models.Song{ID: 1, Duration: 0}, servePlayOptions{targetFormat: "mp3", speed: 1.0}},
-			{"seek param", song, servePlayOptions{targetFormat: "mp3", speed: 1.0, seekSeconds: 30}},
 			{"speed change", song, servePlayOptions{targetFormat: "mp3", speed: 1.5}},
 		}
 		for _, c := range cases {
