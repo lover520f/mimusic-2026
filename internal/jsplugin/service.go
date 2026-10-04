@@ -48,6 +48,7 @@ type HTTPRequestData struct {
 	Headers      map[string]string `json:"headers"`
 	Body         string            `json:"body"`
 	Query        string            `json:"query"`
+	RemoteAddr   string            `json:"remoteAddr,omitempty"`   // TCP 对端，不采用代理请求头
 	BodyEncoding string            `json:"bodyEncoding,omitempty"` // "base64" 当 body 含非 UTF-8 二进制数据时
 }
 

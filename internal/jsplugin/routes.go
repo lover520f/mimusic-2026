@@ -30,6 +30,13 @@ var pluginAssets embed.FS
 
 const maxPluginBodySize = 50 << 20 // 50MB，对齐 multipart 上传需求
 
+func init() {
+	// GENA uses extension methods. Register before any chi router is built;
+	// registration changes chi's process-wide method table.
+	chi.RegisterMethod("SUBSCRIBE")
+	chi.RegisterMethod("UNSUBSCRIBE")
+}
+
 // assetVersions 缓存公共资源（theme.css / components.css / common.js）内容哈希的
 // 前 8 位 hex，用于给 injectHTMLHead 注入的资源 URL 加 ?v=<hash> 做 cache-busting。
 //
@@ -300,6 +307,7 @@ func (m *Manager) handlePluginStaticSubdirFiles(w http.ResponseWriter, r *http.R
 //
 // @Summary 插件 API 转发 catch-all（动态路由）
 // @Description 接受任意 HTTP 方法，分发到插件 static 兜底、入站 WebSocket upgrade（调用 onWebSocket），或转发到 QuickJS 沙盒中的插件代码。{entryPath} 和子路径均由运行时决定，OpenAPI 仅作占位。需要 BearerAuth。
+// @Description 支持 UPnP 事件订阅的 SUBSCRIBE/UNSUBSCRIBE 扩展方法（OpenAPI 2 无对应方法，仅在此说明）。插件 publicPaths 中声明的路径免 JWT，由插件自行校验协议访问范围。
 // @Tags JS 插件
 // @Accept json
 // @Produce json
@@ -649,10 +657,11 @@ func (m *Manager) forwardToJSRuntime(w http.ResponseWriter, r *http.Request, ent
 		return
 	}
 	reqData := &HTTPRequestData{
-		Method:  r.Method,
-		Path:    normalizedPath,
-		Headers: flattenHeaders(r.Header),
-		Query:   r.URL.RawQuery,
+		Method:     r.Method,
+		Path:       normalizedPath,
+		Headers:    flattenHeaders(r.Header),
+		Query:      r.URL.RawQuery,
+		RemoteAddr: r.RemoteAddr,
 	}
 
 	// 当 body 包含非 UTF-8 字节（如 multipart 上传的二进制文件）时，

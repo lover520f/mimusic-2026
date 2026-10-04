@@ -354,9 +354,14 @@ function onDeinit() {
     path: "/songs",          // 请求路径（相对于插件的 entryPath）
     headers: {},             // 请求头 map
     body: "",                // 请求体（POST/PUT 时）
-    query: "limit=10&offset=0"  // URL 查询字符串
+    query: "limit=10&offset=0", // URL 查询字符串
+    remoteAddr: "192.168.1.20:54321" // TCP 对端地址，不采用 X-Forwarded-For 等代理头；旧宿主/内部调用可能省略
 }
 ```
+
+宿主支持 UPnP 事件订阅的 `SUBSCRIBE` / `UNSUBSCRIBE` 扩展 HTTP 方法。插件可在 `onHTTPRequest` 中按 `req.method` 分发，并仅将协议端点列入 `publicPaths`；免 JWT 的端点仍须自行校验访问范围和事件回调地址。OpenAPI 2 不支持这两种方法，因此 Swagger 只在 catch-all 的描述中说明。
+
+需要监听 SSDP 多播时，可使用 `songloft.net.udpBind({address: "0.0.0.0:1900", reuseAddress: true})` 后调用 `udpJoinMulticast(socketId, "239.255.255.250")`。`reuseAddress` 默认关闭，只设置 `SO_REUSEADDR`；同端口其他 socket 也须允许复用，否则仍会失败。旧宿主会忽略该选项。声明 `net` 权限，停用时关闭 socket；活跃 UDP socket 会阻止插件被空闲驱逐。
 
 **返回值结构：**
 

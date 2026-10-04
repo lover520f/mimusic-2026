@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net"
 	"sync"
+	"syscall"
 
 	"golang.org/x/net/ipv4"
 )
@@ -49,7 +50,8 @@ func (h *BridgeHandler) handleNet(action, data string) (string, error) {
 
 func (h *BridgeHandler) netUDPBind(data string) (string, error) {
 	var params struct {
-		Address string `json:"address"`
+		Address      string `json:"address"`
+		ReuseAddress bool   `json:"reuseAddress"`
 	}
 	if err := json.Unmarshal([]byte(data), &params); err != nil {
 		return "", fmt.Errorf("netUDPBind: %w", err)
@@ -73,7 +75,19 @@ func (h *BridgeHandler) netUDPBind(data string) (string, error) {
 		return "", fmt.Errorf("netUDPBind: resolve %q: %w", addr, err)
 	}
 
-	conn, err := net.ListenUDP("udp4", udpAddr)
+	var conn *net.UDPConn
+	if params.ReuseAddress {
+		lc := net.ListenConfig{Control: func(_, _ string, c syscall.RawConn) error {
+			return setUDPReuseAddress(c)
+		}}
+		var pc net.PacketConn
+		pc, err = lc.ListenPacket(context.Background(), "udp4", udpAddr.String())
+		if err == nil {
+			conn = pc.(*net.UDPConn)
+		}
+	} else {
+		conn, err = net.ListenUDP("udp4", udpAddr)
+	}
 	if err != nil {
 		return "", fmt.Errorf("netUDPBind: listen: %w", err)
 	}

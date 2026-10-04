@@ -1106,7 +1106,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "接受任意 HTTP 方法，分发到插件 static 兜底、入站 WebSocket upgrade（调用 onWebSocket），或转发到 QuickJS 沙盒中的插件代码。{entryPath} 和子路径均由运行时决定，OpenAPI 仅作占位。需要 BearerAuth。",
+                "description": "接受任意 HTTP 方法，分发到插件 static 兜底、入站 WebSocket upgrade（调用 onWebSocket），或转发到 QuickJS 沙盒中的插件代码。{entryPath} 和子路径均由运行时决定，OpenAPI 仅作占位。需要 BearerAuth。\n支持 UPnP 事件订阅的 SUBSCRIBE/UNSUBSCRIBE 扩展方法（OpenAPI 2 无对应方法，仅在此说明）。插件 publicPaths 中声明的路径免 JWT，由插件自行校验协议访问范围。",
                 "consumes": [
                     "application/json"
                 ],
@@ -1184,7 +1184,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "接受任意 HTTP 方法，分发到插件 static 兜底、入站 WebSocket upgrade（调用 onWebSocket），或转发到 QuickJS 沙盒中的插件代码。{entryPath} 和子路径均由运行时决定，OpenAPI 仅作占位。需要 BearerAuth。",
+                "description": "接受任意 HTTP 方法，分发到插件 static 兜底、入站 WebSocket upgrade（调用 onWebSocket），或转发到 QuickJS 沙盒中的插件代码。{entryPath} 和子路径均由运行时决定，OpenAPI 仅作占位。需要 BearerAuth。\n支持 UPnP 事件订阅的 SUBSCRIBE/UNSUBSCRIBE 扩展方法（OpenAPI 2 无对应方法，仅在此说明）。插件 publicPaths 中声明的路径免 JWT，由插件自行校验协议访问范围。",
                 "consumes": [
                     "application/json"
                 ],
@@ -1262,7 +1262,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "接受任意 HTTP 方法，分发到插件 static 兜底、入站 WebSocket upgrade（调用 onWebSocket），或转发到 QuickJS 沙盒中的插件代码。{entryPath} 和子路径均由运行时决定，OpenAPI 仅作占位。需要 BearerAuth。",
+                "description": "接受任意 HTTP 方法，分发到插件 static 兜底、入站 WebSocket upgrade（调用 onWebSocket），或转发到 QuickJS 沙盒中的插件代码。{entryPath} 和子路径均由运行时决定，OpenAPI 仅作占位。需要 BearerAuth。\n支持 UPnP 事件订阅的 SUBSCRIBE/UNSUBSCRIBE 扩展方法（OpenAPI 2 无对应方法，仅在此说明）。插件 publicPaths 中声明的路径免 JWT，由插件自行校验协议访问范围。",
                 "consumes": [
                     "application/json"
                 ],
@@ -1340,7 +1340,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "接受任意 HTTP 方法，分发到插件 static 兜底、入站 WebSocket upgrade（调用 onWebSocket），或转发到 QuickJS 沙盒中的插件代码。{entryPath} 和子路径均由运行时决定，OpenAPI 仅作占位。需要 BearerAuth。",
+                "description": "接受任意 HTTP 方法，分发到插件 static 兜底、入站 WebSocket upgrade（调用 onWebSocket），或转发到 QuickJS 沙盒中的插件代码。{entryPath} 和子路径均由运行时决定，OpenAPI 仅作占位。需要 BearerAuth。\n支持 UPnP 事件订阅的 SUBSCRIBE/UNSUBSCRIBE 扩展方法（OpenAPI 2 无对应方法，仅在此说明）。插件 publicPaths 中声明的路径免 JWT，由插件自行校验协议访问范围。",
                 "consumes": [
                     "application/json"
                 ],

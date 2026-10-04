@@ -354,9 +354,14 @@ Called when an HTTP request is received. This is the main entry point through wh
     path: "/songs",          // Request path (relative to the plugin's entryPath)
     headers: {},             // Request headers map
     body: "",                // Request body (for POST/PUT)
-    query: "limit=10&offset=0"  // URL query string
+    query: "limit=10&offset=0", // URL query string
+    remoteAddr: "192.168.1.20:54321" // TCP peer; never taken from forwarding headers; older hosts/internal calls may omit it
 }
 ```
+
+The host supports the UPnP event subscription extension methods `SUBSCRIBE` and `UNSUBSCRIBE`. Dispatch them by `req.method` in `onHTTPRequest`, and add only protocol endpoints to `publicPaths`. Endpoints exempt from JWT must still validate their access scope and event callback addresses. OpenAPI 2 does not support these methods, so Swagger documents them in the catch-all description only.
+
+To listen for SSDP multicast, use `songloft.net.udpBind({address: "0.0.0.0:1900", reuseAddress: true})`, followed by `udpJoinMulticast(socketId, "239.255.255.250")`. `reuseAddress` defaults to false and sets only `SO_REUSEADDR`; other sockets on that port must also allow reuse, or binding still fails. Older hosts ignore this option. Declare the `net` permission and close the socket when disabled. Active UDP sockets prevent idle eviction of the plugin.
 
 **Return value structure:**
 

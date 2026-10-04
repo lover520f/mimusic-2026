@@ -85,6 +85,29 @@ func TestNetUDPBind_DefaultAddress(t *testing.T) {
 	_, _ = h.netUDPClose(`{"socketId":"` + resp.SocketID + `"}`)
 }
 
+func TestNetUDPBind_ReuseAddress(t *testing.T) {
+	h := newTestNetBridgeHandler(t)
+	t.Cleanup(h.cleanupUDPSockets)
+	first, err := h.netUDPBind(`{"address":"127.0.0.1:0","reuseAddress":true}`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var bound struct {
+		LocalAddr string `json:"localAddr"`
+	}
+	if err := json.Unmarshal([]byte(first), &bound); err != nil {
+		t.Fatal(err)
+	}
+	params, _ := json.Marshal(map[string]any{"address": bound.LocalAddr, "reuseAddress": true})
+	if _, err := h.netUDPBind(string(params)); err != nil {
+		t.Fatalf("second reusable bind: %v", err)
+	}
+	params, _ = json.Marshal(map[string]any{"address": bound.LocalAddr})
+	if _, err := h.netUDPBind(string(params)); err == nil {
+		t.Fatal("ordinary exclusive bind should still fail on an occupied address")
+	}
+}
+
 func TestNetUDPBind_MaxSockets(t *testing.T) {
 	h := newTestNetBridgeHandler(t)
 	var socketIDs []string
