@@ -1,12 +1,14 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
 	"strconv"
+	"time"
 
 	"songloft/internal/database"
 	"songloft/internal/jsplugin"
@@ -210,14 +212,16 @@ func (h *JSPluginHandler) handleUpload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if h.manager != nil {
+		activationCtx, cancel := context.WithTimeout(context.WithoutCancel(r.Context()), 30*time.Second)
+		defer cancel()
 		if wasUpdate && plugin.Status == jsplugin.JSPluginStatusActive {
 			// 覆盖更新成功后，若原插件处于活跃状态，热重载使变更立即生效
-			if reloadErr := h.manager.ReloadPlugin(r.Context(), plugin.EntryPath); reloadErr != nil {
+			if reloadErr := h.manager.ReloadPlugin(activationCtx, plugin.EntryPath); reloadErr != nil {
 				slog.Warn("reload plugin after upload-update failed", "entryPath", plugin.EntryPath, "error", reloadErr)
 			}
 		} else if !wasUpdate {
 			// 新安装的插件默认启用
-			if enableErr := h.manager.EnablePlugin(r.Context(), plugin.ID); enableErr != nil {
+			if enableErr := h.manager.EnablePlugin(activationCtx, plugin.ID); enableErr != nil {
 				slog.Warn("auto-enable plugin after install failed", "entryPath", plugin.EntryPath, "error", enableErr)
 			} else {
 				plugin.Status = jsplugin.JSPluginStatusActive
@@ -612,7 +616,10 @@ func (h *JSPluginHandler) handleDownloadUpdate(w http.ResponseWriter, r *http.Re
 
 	// 如果插件处于活跃状态，重载它
 	if plugin.Status == jsplugin.JSPluginStatusActive && h.manager != nil {
-		if reloadErr := h.manager.ReloadPlugin(r.Context(), plugin.EntryPath); reloadErr != nil {
+		// 更新包已经落盘，客户端超时/断开不能阻止新版本生效。
+		reloadCtx, cancel := context.WithTimeout(context.WithoutCancel(r.Context()), 30*time.Second)
+		defer cancel()
+		if reloadErr := h.manager.ReloadPlugin(reloadCtx, plugin.EntryPath); reloadErr != nil {
 			slog.Warn("reload plugin after download update failed", "entryPath", plugin.EntryPath, "error", reloadErr)
 		}
 	}

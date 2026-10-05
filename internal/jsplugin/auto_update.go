@@ -138,9 +138,17 @@ func (m *Manager) RunUpdateAllWithOptions(ctx context.Context, githubProxy strin
 				}
 			}
 			if !item.ReloadDeferred {
-				if reloadErr := m.ReloadPlugin(ctx, updatedPlugin.EntryPath); reloadErr != nil {
+				reloadBaseCtx := ctx
+				if !opts.DeferReloadWhenBusy {
+					// 手动批量更新下载完成后，即使客户端断开也要让新版本生效。
+					// 后台自动更新仍保留停机取消语义。
+					reloadBaseCtx = context.WithoutCancel(ctx)
+				}
+				reloadCtx, cancel := context.WithTimeout(reloadBaseCtx, 30*time.Second)
+				if reloadErr := m.ReloadPlugin(reloadCtx, updatedPlugin.EntryPath); reloadErr != nil {
 					slog.Warn("reload plugin after update failed", "entryPath", updatedPlugin.EntryPath, "error", reloadErr)
 				}
+				cancel()
 			}
 		}
 

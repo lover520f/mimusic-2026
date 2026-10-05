@@ -514,12 +514,14 @@ func (h *JSPluginHandler) handleRegistryInstall(w http.ResponseWriter, r *http.R
 	}
 
 	if h.manager != nil {
+		activationCtx, cancel := context.WithTimeout(context.WithoutCancel(r.Context()), 30*time.Second)
+		defer cancel()
 		if wasUpdate && plugin.Status == jsplugin.JSPluginStatusActive {
-			if reloadErr := h.manager.ReloadPlugin(r.Context(), plugin.EntryPath); reloadErr != nil {
+			if reloadErr := h.manager.ReloadPlugin(activationCtx, plugin.EntryPath); reloadErr != nil {
 				slog.Warn("reload plugin after registry install failed", "entryPath", plugin.EntryPath, "error", reloadErr)
 			}
 		} else if !wasUpdate {
-			if enableErr := h.manager.EnablePlugin(r.Context(), plugin.ID); enableErr != nil {
+			if enableErr := h.manager.EnablePlugin(activationCtx, plugin.ID); enableErr != nil {
 				slog.Warn("auto-enable plugin after registry install failed", "entryPath", plugin.EntryPath, "error", enableErr)
 			} else {
 				plugin.Status = jsplugin.JSPluginStatusActive
