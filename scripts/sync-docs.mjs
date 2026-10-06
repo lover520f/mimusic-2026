@@ -24,6 +24,7 @@ const REPO_BLOB_BASE = 'https://github.com/songloft-org/songloft/blob/main';
 const SUBMODULE_BLOB_BASES = [
   { prefix: 'integrations/home-assistant/', base: 'https://github.com/songloft-org/home-assistant-addon/blob/main' },
   { prefix: 'clients/player/', base: 'https://github.com/songloft-org/songloft-player/blob/main' },
+  { prefix: 'clients/player-lynx/', base: 'https://github.com/songloft-org/songloft-player-lynx/blob/main' },
   { prefix: 'plugins/toolchain/', base: 'https://github.com/songloft-org/plugin-toolchain/blob/main' },
 ];
 
@@ -62,6 +63,20 @@ const syncItems = [
   { from: 'clients/player/docs/cn/platform-notes.md',  to: 'docs/player/platform-notes.md',  subdir: 'clients/player/docs/cn' },
   { from: 'clients/player/docs/cn/flutter_patcher_hotupdate.md',  to: 'docs/player/flutter_patcher_hotupdate.md',  subdir: 'clients/player/docs/cn' },
   { from: 'clients/player/docs/cn/backend_hotupdate.md',  to: 'docs/player/backend_hotupdate.md',  subdir: 'clients/player/docs/cn' },
+
+  // Lynx 公共指南保持中英对应；内部审计和历史进展继续链接源仓库。
+  ...['zh', 'en'].flatMap((lang) => {
+    const src = 'clients/player-lynx';
+    const target = `docs/${lang === 'en' ? 'en/' : ''}player-lynx`;
+    const guides = `${src}/docs/${lang === 'en' ? 'en/' : ''}guides`;
+    return [
+      { from: `${src}/README${lang === 'en' ? '.en' : ''}.md`, to: `${target}/index.md`, subdir: src },
+      { from: `${src}/CONTRIBUTING${lang === 'en' ? '.en' : ''}.md`, to: `${target}/contributing.md`, subdir: src },
+      ...['installation', 'build-and-run', 'testing', 'releasing', 'web-deployment'].map((name) => ({
+        from: `${guides}/${name}.md`, to: `${target}/${name}.md`, subdir: guides,
+      })),
+    ];
+  }),
 
   // ── Home Assistant 加载项文档 → docs/addon/ ──
   // 源在独立仓库 songloft-org/home-assistant-addon（子模块）；

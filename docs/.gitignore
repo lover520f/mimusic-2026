@@ -20,6 +20,8 @@ en/PRIVACY.md
 en/TERMS.md
 # 子模块及子项目文档由 sync 生成
 player/
+player-lynx/
+en/player-lynx/
 addon/
 plugin-toolchain/
 

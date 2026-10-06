@@ -7,7 +7,7 @@ import llmstxt from 'vitepress-plugin-llms'
 export default async () => {
   return withMermaid(defineConfig({
     title: "Songloft",
-    description: "Songloft - 自托管个人音乐服务器，支持 JS 插件扩展，跨平台 Flutter 客户端",
+    description: "Songloft - 自托管个人音乐服务器，支持 JS 插件扩展、Flutter 与 Lynx 客户端",
     lang: 'zh-Hans',
 
     // 中英双语：中文为根（/），英文在 /en/。目前仅落地页（index.md / en/index.md）
@@ -24,7 +24,7 @@ export default async () => {
         themeConfig: {
           nav: [
             { text: 'Get Started', link: '/en/quick-start' },
-            { text: 'Client', link: 'https://github.com/songloft-org/songloft/releases/latest' },
+            { text: 'Clients', link: '/en/clients' },
             {
               text: 'Plugins',
               items: [
@@ -41,6 +41,7 @@ export default async () => {
               text: 'More',
               items: [
                 { text: 'API Docs', link: '/swagger-api/' },
+                { text: 'Lynx Client', link: '/en/player-lynx/' },
                 { text: 'Docker Hub', link: 'https://hub.docker.com/r/songloft/songloft' },
                 { text: 'Privacy', link: '/en/PRIVACY' },
                 { text: 'NOTICE', link: '/en/NOTICE' },
@@ -64,7 +65,7 @@ export default async () => {
 
       nav: [
         { text: '快速开始', link: '/quick-start' },
-        { text: '客户端', link: '/issues/8' },
+        { text: '客户端', link: '/clients' },
         {
           text: '插件',
           items: [
@@ -83,6 +84,7 @@ export default async () => {
           items: [
             { text: 'API 文档', link: '/swagger-api/' },
             { text: 'Flutter 客户端', link: '/player/architecture' },
+            { text: 'Lynx 客户端', link: '/player-lynx/' },
             { text: 'HA 加载项', link: '/addon/' },
             { text: 'Docker Hub', link: 'https://hub.docker.com/r/songloft/songloft' },
             { text: '隐私说明', link: '/PRIVACY' },

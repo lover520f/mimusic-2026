@@ -188,6 +188,16 @@ Beyond the web interface, Songloft also offers a more powerful cross-platform Fl
 
 > 💡 When using the **Lite (-lite)** server, we recommend pairing it directly with the Flutter client (no need to deploy a separate web frontend). If you do need a standalone web frontend, refer to the `flutter build web` process in the [songloft-player](https://github.com/songloft-org/songloft-player) repository to build it yourself and serve the static files via a reverse proxy such as Nginx.
 
+### 📱 Lynx Client (Preview)
+
+[Songloft Player (Lynx)](https://github.com/songloft-org/songloft-player-lynx) uses [ReactLynx](https://lynxjs.org/react/) + TypeScript on Android, iOS, HarmonyOS, and Web. Playback, library/playlists, lyrics, plugins, themes, and multiple servers are implemented. Desktop clients, a bundled local backend, and in-app client update checks are not implemented.
+
+- [Development downloads](https://github.com/songloft-org/songloft-player-lynx/releases/tag/dev): main code pushes build automatically; all five packages must succeed before downloads update.
+- [Stable releases](https://github.com/songloft-org/songloft-player-lynx/releases/latest): published by version tags; a stable package may not exist before the first successful release.
+- [Installation](https://songloft.hanxi.cc/en/player-lynx/installation) · [Build and run](https://songloft.hanxi.cc/en/player-lynx/build-and-run) · [Releasing](https://songloft.hanxi.cc/en/player-lynx/releasing).
+
+Android ships a release-signed APK; iOS an IPA requiring user re-signing; HarmonyOS a signed HAP whose authorized devices depend on its profile; Web standalone/embedded archives. HarmonyOS is experimental. Web needs HTTPS and COOP/COEP headers; subpath deployment is unverified. See [client selection](docs/en/clients.md).
+
 ### 📺 TV / Car Client
 
 In addition to the Flutter client, for TV and in-vehicle infotainment (IVI) systems we recommend the dedicated **[songloft-tv](https://github.com/songloft-org/songloft-tv)** client, designed for Android TV and car head units with remote control and touchscreen support.

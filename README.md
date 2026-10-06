@@ -188,6 +188,16 @@ Songloft 提供三种版本，满足不同使用场景：
 
 > 💡 使用 **精简版（-lite）** 服务端时，推荐直接搭配 Flutter 客户端使用（无需额外部署 Web 前端）；如确实需要独立 Web 前端，可参考 [songloft-player](https://github.com/songloft-org/songloft-player) 仓库的 `flutter build web` 流程自行构建并由 Nginx 等反向代理静态托管。
 
+### 📱 Lynx 客户端（预览版）
+
+[Songloft Player (Lynx)](https://github.com/songloft-org/songloft-player-lynx) 使用 [ReactLynx](https://lynxjs.org/react/) + TypeScript，支持 Android、iOS、HarmonyOS 和 Web。已实现核心播放、曲库/歌单、歌词、插件、主题与多服务器；目前没有桌面客户端、Bundle 本地后端或客户端内检查更新。
+
+- [开发版下载](https://github.com/songloft-org/songloft-player-lynx/releases/tag/dev)：main 代码推送后自动打包，五个产物全部成功才更新。
+- [正式版本](https://github.com/songloft-org/songloft-player-lynx/releases/latest)：通过版本 tag 发布；首次成功发版前可能尚无正式包。
+- [安装指南](https://songloft.hanxi.cc/player-lynx/installation) · [构建与运行](https://songloft.hanxi.cc/player-lynx/build-and-run) · [发版指南](https://songloft.hanxi.cc/player-lynx/releasing)。
+
+Android 提供 release 签名 APK，iOS 提供需自行重签的 IPA，HarmonyOS 提供签名 HAP（设备范围由 profile 决定），Web 提供 standalone/embedded 两种压缩包。HarmonyOS 为实验性支持；Web 需 HTTPS 与 COOP/COEP 响应头，子路径部署未验证。详见[客户端选择](docs/clients.md)。
+
 ### 📺 TV / 车机客户端
 
 除 Flutter 客户端外，TV 端和车机端推荐使用专门的 **[songloft-tv](https://github.com/songloft-org/songloft-tv)** 客户端，专为 Android TV 及车载信息娱乐系统设计，支持遥控器和触屏操作。

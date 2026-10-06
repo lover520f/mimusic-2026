@@ -1,5 +1,5 @@
 // 落地页「安装选择器」的结构化数据。数据来自仓库 README.md 的下载表。
-// 下载链接统一走 releases/latest/download 前缀，永远指向最新 Release 资源。
+// 服务端与 Bundle 资产走主仓库 releases/latest/download，独立客户端走各自 Release。
 
 export type Lang = 'zh' | 'en'
 export interface L { zh: string; en: string }
@@ -33,7 +33,7 @@ export interface CommandBlock {
 }
 export interface ExternalLink {
   label: L
-  url: string
+  url: string | L
   primary?: boolean
 }
 export interface InstallMethod {
@@ -109,7 +109,7 @@ export const INSTALL: InstallMethod[] = [
       {
         id: 'lite',
         label: { zh: '精简版', en: 'Lite' },
-        desc: { zh: '不含 Web 前端，搭配 Flutter 客户端', en: 'No web UI, pair with the Flutter client' },
+        desc: { zh: '不含 Web 前端，搭配播放器客户端', en: 'No web UI, pair with a player client' },
         groups: binaryGroups('-lite'),
       },
     ],
@@ -274,6 +274,36 @@ export const INSTALL: InstallMethod[] = [
         code:
           '# songloft-bundled 与 songloft-server、songloft-player 存在文件冲突，不能同时安装\n' +
           '# songloft-server 与 songloft-player 可以共存',
+      },
+    ],
+  },
+  {
+    id: 'lynx',
+    label: { zh: 'Lynx 客户端', en: 'Lynx Client' },
+    tagline: { zh: '预览版 · Android / iOS / HarmonyOS / Web', en: 'Preview · Android / iOS / HarmonyOS / Web' },
+    icon: 'smartphone',
+    kind: 'external',
+    note: {
+      zh: '需连接服务器，无 Bundle 或桌面版。iOS IPA 需自行重签；HarmonyOS 为实验性支持。dev 仅在五包全部成功后更新，首次发版前可能没有正式包。Web 部署需 HTTPS 与 COOP/COEP 响应头，详见安装指南。',
+      en: 'Requires a server; no Bundle or desktop edition. iOS IPA needs re-signing; HarmonyOS is experimental. Dev updates only after all five packages succeed; stable packages may not exist yet. Web hosting needs HTTPS and COOP/COEP headers; see the installation guide.',
+    },
+    external: [
+      {
+        label: { zh: '开发版下载', en: 'Development downloads' },
+        url: 'https://github.com/songloft-org/songloft-player-lynx/releases/tag/dev',
+        primary: true,
+      },
+      {
+        label: { zh: '正式版本', en: 'Stable releases' },
+        url: 'https://github.com/songloft-org/songloft-player-lynx/releases/latest',
+      },
+      {
+        label: { zh: '安装指南', en: 'Installation guide' },
+        url: { zh: '/player-lynx/installation', en: '/en/player-lynx/installation' },
+      },
+      {
+        label: { zh: '源码仓库', en: 'Source repository' },
+        url: 'https://github.com/songloft-org/songloft-player-lynx',
       },
     ],
   },

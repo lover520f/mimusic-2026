@@ -2,10 +2,14 @@
 
 Songloft is a self-hosted local music server built with a decoupled frontend/backend architecture. It supports two run modes: **Server Mode** (deploying the Go backend standalone) and **Bundle Local Mode** (embedding the Go backend inside the Flutter client, with no need to deploy a separate server).
 
+Server Mode supports both Flutter and ReactLynx clients. Lynx is an Android/iOS/HarmonyOS/Web preview with no desktop or Bundle mode; the client architecture diagram below describes the default Flutter setup.
+
 ## Architecture Documentation Navigation
 
 - **[Backend Architecture](./architecture_backend.md)** - Detailed architecture of the Go backend API service
 - **[Frontend Architecture](./architecture_frontend.md)** - Detailed architecture of the Flutter cross-platform frontend
+- **[Choosing a Client](./clients.md)** - Flutter and Lynx platforms, capabilities, and downloads
+- **[Lynx Client](./player-lynx/index.md)** - Installation, builds, testing, and independent releases
 - **[Color System](./color_system.md)** - Material 3 color system and theming conventions
 - **[Quick Start](./quick-start.md)** - Getting-started guide (generated in sync with README.md)
 

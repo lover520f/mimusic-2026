@@ -1,6 +1,8 @@
-# Songloft Frontend Architecture
+# Songloft Flutter Frontend Architecture
 
 > **Standalone repository**: [https://github.com/songloft-org/songloft-player](https://github.com/songloft-org/songloft-player)
+
+This page describes Flutter. The ReactLynx + TypeScript preview client supports Android/iOS/HarmonyOS/Web; see [client selection](clients.md) and [Lynx guides](player-lynx/index.md). It has no desktop or bundled local backend and does not use the Flutter layout or build commands below.
 
 The Songloft frontend is a Flutter-based cross-platform music player supporting six platforms: **Android, iOS, macOS, Windows, Linux, and Web**. The Flutter Web build output can be embedded into the Go backend binary and shipped together. It also supports **Bundle local mode**: embedding the Go backend into the client (as a native library via gomobile on mobile, and as a subprocess on desktop), so users can play local music without deploying a separate server.
 

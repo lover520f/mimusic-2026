@@ -133,7 +133,7 @@ function selectOS(os: string) {
                 :key="i"
                 class="btn"
                 :class="e.primary ? 'btn-primary' : 'btn-ghost'"
-                :href="e.url"
+                :href="typeof e.url === 'string' ? e.url : withBase(pick(e.url, lang))"
                 target="_blank"
                 rel="noreferrer"
               >

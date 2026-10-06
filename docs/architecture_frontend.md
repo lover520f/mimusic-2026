@@ -1,6 +1,8 @@
-# Songloft 前端架构说明
+# Songloft Flutter 前端架构说明
 
 > **独立仓库**: [https://github.com/songloft-org/songloft-player](https://github.com/songloft-org/songloft-player)
+
+本文描述 Flutter 客户端。ReactLynx + TypeScript 的 Lynx 预览客户端支持 Android/iOS/HarmonyOS/Web，详见[客户端选择](clients.md)及 [Lynx 指南](player-lynx/index.md)；它尚无桌面或 Bundle 本地后端，不沿用下面的 Flutter 目录与构建命令。
 
 Songloft 前端是一个基于 Flutter 的跨平台音乐播放器，支持 **Android、iOS、macOS、Windows、Linux、Web** 六个平台。Flutter Web 构建产物可嵌入到 Go 后端二进制中一起分发。同时支持 **Bundle 本地模式**：将 Go 后端嵌入客户端（移动端通过 gomobile 原生库，桌面端通过子进程），无需单独部署服务器即可播放本地音乐。
 
