@@ -185,6 +185,36 @@ export const INSTALL: InstallMethod[] = [
     ],
   },
   {
+    id: 'router',
+    label: { zh: '路由器 / 光猫', en: 'Router / ONT' },
+    tagline: { zh: 'OpenWrt / Entware / 梅林', en: 'OpenWrt / Entware / Merlin' },
+    icon: 'router',
+    kind: 'external',
+    note: {
+      zh: '社区项目 songloft-for-router 提供路由器与光猫安装包，支持 OpenWrt、Entware 和梅林（SWRTdev / Koolshare 软件中心）。请按固件生态与 CPU 架构选择安装包，安装与服务管理步骤见项目文档。',
+      en: 'The community project songloft-for-router provides packages for routers and ONTs running OpenWrt, Entware, or Merlin (SWRTdev / Koolshare software centers). Choose a package for your firmware and CPU architecture; see the project docs for installation and service management.',
+    },
+    external: [
+      {
+        label: { zh: 'OpenWrt 安装包', en: 'OpenWrt packages' },
+        url: 'https://github.com/songloft-org/songloft-for-router/releases?q=openwrt',
+        primary: true,
+      },
+      {
+        label: { zh: 'Entware 安装包', en: 'Entware packages' },
+        url: 'https://github.com/songloft-org/songloft-for-router/releases?q=entware',
+      },
+      {
+        label: { zh: '梅林安装包', en: 'Merlin packages' },
+        url: 'https://github.com/songloft-org/songloft-for-router/releases?q=merlin',
+      },
+      {
+        label: { zh: '安装与使用文档', en: 'Installation guide (Chinese)' },
+        url: 'https://github.com/songloft-org/songloft-for-router#安装文档',
+      },
+    ],
+  },
+  {
     id: 'bundle',
     label: { zh: 'Bundle 版', en: 'Bundle' },
     tagline: { zh: '内嵌后端 · 免部署服务器', en: 'Embedded backend · no server' },
