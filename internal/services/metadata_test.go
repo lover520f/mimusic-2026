@@ -23,6 +23,27 @@ func TestNewMetadataExtractor(t *testing.T) {
 	}
 }
 
+func TestExtractMP3FractionalDuration(t *testing.T) {
+	// tag 库优先路径必须保留小数秒，不依赖 ffprobe 兜底。
+	extractor := NewMetadataExtractor(&MetadataConfig{})
+	path := filepath.Join("..", "..", "pkg", "tag", "testdata", "with_tags", "sample.vbr.mp3")
+	const want = 249.984
+	duration, err := extractor.ExtractDuration(context.Background(), path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if math.Abs(duration-want) > 1e-6 {
+		t.Fatalf("ExtractDuration = %.9f, want %.9f", duration, want)
+	}
+	metadata, err := extractor.Extract(context.Background(), path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if math.Abs(metadata.Duration-want) > 1e-6 {
+		t.Fatalf("Extract duration = %.9f, want %.9f", metadata.Duration, want)
+	}
+}
+
 // TestParseDuration 测试解析时长
 func TestParseDuration(t *testing.T) {
 	tests := []struct {
