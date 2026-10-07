@@ -16,6 +16,7 @@ import (
 )
 
 type compressedEntry struct {
+	raw      []byte // 运行时修改后的原始内容；构建时预压缩文件仍从 distFS 读取
 	br       []byte
 	gz       []byte
 	mimeType string
@@ -95,10 +96,12 @@ func (pfs *precompressedFS) addCustomEntry(p string, raw []byte, ext string) {
 	gzw.Close()
 
 	pfs.entries[p] = &compressedEntry{
+		raw:      bytes.Clone(raw),
 		br:       brBuf.Bytes(),
 		gz:       gzBuf.Bytes(),
 		mimeType: mimeType,
-		etag:     fmt.Sprintf(`"%08x"`, crc32.ChecksumIEEE(raw)),
+		// 旧版 identity 返回原始页面却使用修改后的校验值；区分旧 ETag，避免升级后继续命中错误缓存。
+		etag: fmt.Sprintf(`"custom-%08x"`, crc32.ChecksumIEEE(raw)),
 	}
 }
 
@@ -135,10 +138,14 @@ func (pfs *precompressedFS) serve(w http.ResponseWriter, r *http.Request, filePa
 		return true
 	}
 
-	// 不支持压缩编码时从 embed.FS 读原始文件
-	raw, err := fs.ReadFile(pfs.distFS, filePath)
-	if err != nil {
-		return false
+	// 运行时修改的文件必须使用修改后的原文，不能回退到 embed.FS 中的旧内容。
+	raw := entry.raw
+	if raw == nil {
+		var err error
+		raw, err = fs.ReadFile(pfs.distFS, filePath)
+		if err != nil {
+			return false
+		}
 	}
 	w.Header().Set("Content-Length", fmt.Sprintf("%d", len(raw)))
 	w.Write(raw)
