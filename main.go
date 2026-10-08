@@ -29,7 +29,7 @@ func init() {
 }
 
 // @title Songloft API
-// @version 2.13.0
+// @version 2.13.1
 // @description 轻量级音乐服务器 API 文档，支持本地音乐管理、网络歌曲、电台和歌单功能
 
 // @contact.name API Support
