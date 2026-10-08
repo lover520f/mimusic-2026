@@ -1363,7 +1363,7 @@ The system extracts the entryPath from the file name: `my-plugin.jsplugin.zip` â
 Adding the topic alone does not guarantee visibility. Also check the following when publishing:
 
 - The repository is public, not archived and not a fork, with a valid `plugin.json` at the root of its default branch.
-- Publish a stable GitHub Release with an existing, nonempty `{entryPath}.jsplugin.zip` asset. The manifest's `download_url` must reference that asset in the same repository. If `updateUrl` supplies the download URL, its metadata must stay in the same repository with consistent versions.
+- Publish a stable GitHub Release with an existing, nonempty `{entryPath}.jsplugin.zip` asset. The manifest's `download_url` must reference that asset, which may belong to another GitHub repository. Clients validate the actual target repository's Release and asset. If `updateUrl` supplies the download URL, public metadata in another GitHub repository is also supported, with consistent versions and plugin entry paths.
 - The root manifest's `main`, `entryHash` and `zipHash` match the final published package. Copy these fields from the built package's `plugin.json` and make the release workflow write them back, so the root manifest does not retain empty hashes. `zipHash` is the toolchain's canonical content hash, not the SHA-256 of the ZIP file itself.
 
 Release tags need not equal manifest versions: for example, `v0.17` can accompany `version: "0.17.0"`. The download URL must reference an actual Release asset. After adding the topic, refresh discovery to check the result; network failures appear as temporarily unverified. Community plugins are marked as not reviewed by Songloft and still require installation confirmation.
