@@ -1354,6 +1354,18 @@ ZIP 文件名格式：`{entryPath}.jsplugin.zip`
 
 系统会从文件名提取 entryPath：`my-plugin.jsplugin.zip` → `my-plugin`
 
+### 加入 GitHub 社区插件发现
+
+**发布插件后，请给 GitHub 仓库添加 `songloft-plugin` topic。** 在仓库首页的 **About → 设置齿轮 → Topics** 中填写并保存；这是仓库的 topic，不是 Release tag。有此 topic 的仓库可被 Flutter 和 Lynx 客户端的「插件商店 → 选源菜单 → GitHub 发现」自动发现，无需等待人工收录。
+
+仅添加 topic 不保证展示，发布时还需确认：
+
+- 仓库公开、未归档且不是 fork，默认分支根目录存在符合规范的 `plugin.json`。
+- 发布稳定的 GitHub Release，上传实际存在、非空的 `{entryPath}.jsplugin.zip`，清单的 `download_url` 指向同仓库的该资产；如通过 `updateUrl` 获取下载地址，更新清单也必须在同仓库并保持版本一致。
+- 根清单的 `main`、`entryHash`、`zipHash` 与最终发布包一致。请从构建后的包内 `plugin.json` 同步这些字段，并让发布工作流回写，避免根清单留下空哈希。`zipHash` 是工具链生成的 canonical 内容哈希，不是 ZIP 文件本身的 SHA-256。
+
+Release tag 不必与清单版本相同，例如 `v0.17` 可配合 `version: "0.17.0"`；下载 URL 必须指向实际存在的 Release 资产。设置 topic 后可主动刷新发现页检查结果，网络失败会显示为「暂未验证」。社区插件会标注「未经 Songloft 审核」，安装前仍需用户确认。
+
 ### 安装方式
 
 1. **开发模式（推荐）**：`songloft-plugin dev` 在本地迭代，参见 [§2.6](#26-开发模式详解-songloft-plugin-dev)
