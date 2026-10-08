@@ -1362,7 +1362,7 @@ ZIP 文件名格式：`{entryPath}.jsplugin.zip`
 
 - 仓库公开、未归档且不是 fork，默认分支根目录存在符合规范的 `plugin.json`。
 - 发布稳定的 GitHub Release，上传实际存在、非空的 `{entryPath}.jsplugin.zip`，清单的 `download_url` 指向该资产，允许使用其他 GitHub 仓库的发布包；客户端会验证目标仓库的实际 Release 和资产。如通过 `updateUrl` 获取下载地址，也允许其他 GitHub 仓库的公开更新清单，但必须保持版本和插件入口一致。
-- 根清单的 `main`、`entryHash`、`zipHash` 与最终发布包一致。请从构建后的包内 `plugin.json` 同步这些字段，并让发布工作流回写，避免根清单留下空哈希。`zipHash` 是工具链生成的 canonical 内容哈希，不是 ZIP 文件本身的 SHA-256。
+- 根清单的 `entryHash`、`zipHash` 可以省略或留空，不影响 GitHub 发现；填写时必须符合 64 位小写十六进制格式。实际安装包中的哈希仍由服务器校验。建议同步根清单的 `main` 和版本，保持与发布包一致。`zipHash` 是工具链生成的 canonical 内容哈希，不是 ZIP 文件本身的 SHA-256。
 
 Release tag 不必与清单版本相同，例如 `v0.17` 可配合 `version: "0.17.0"`；下载 URL 必须指向实际存在的 Release 资产。设置 topic 后可主动刷新发现页检查结果，网络失败会显示为「暂未验证」。社区插件会标注「未经 Songloft 审核」，安装前仍需用户确认。
 
