@@ -1216,6 +1216,14 @@ When the theme changes (the user switches it in the main program's settings), `c
 
 Plugin JS can listen for theme changes via `SongloftPlugin.onThemeChange(callback)` to perform additional handling.
 
+#### Glass appearance and accessibility
+
+The optional host fields `appearance.reduceTransparency` / `appearance.increaseContrast` accept booleans only. `common.js` maps them to the `<html>` attributes `data-reduce-transparency` / `data-increase-contrast` (`"true"` or `"false"`) and dispatches `songloft-theme-appearance-change`. Missing or invalid fields remove the attributes, meaning the host provided no information. These preferences are neither stored in localStorage nor restored from a previous host session. Plugins should OR host preferences with the browser's `prefers-reduced-transparency` / `prefers-contrast`, and provide an opaque background for reduced transparency, increased contrast, or unavailable blur.
+
+The Lynx client sends the effective material and both flags, resending the full theme message when the material variant, theme pack, or accessibility preferences change. Flutter also sends effective preferences: reduced transparency is saved on the device, while increased contrast combines the local switch with Flutter's system high-contrast signal using OR. Native WebViews and Web iframes resend messages as the theme rebuilds. Older Flutter messages remain compatible with the missing-field rules above. `--sl-theme-glass-fill` is a host material color; it does not guarantee plugin text contrast over arbitrary backgrounds. Floating players should protect their own fill and text contrast, placing blur on a separate decorative layer so it does not change the containing block of fixed popups.
+
+Public bridge regression test: `node --test scripts/tests/plugin-theme-appearance.test.mjs`.
+
 #### Variable Reference
 
 The `--md-*` variables map **one-to-one** onto Flutter's `ColorScheme` fields (camelCase → kebab-case), so the two sides can be audited against each other:

@@ -1215,6 +1215,14 @@ if (info.platform !== 'web') {
 
 插件 JS 可通过 `SongloftPlugin.onThemeChange(callback)` 监听主题变化做额外处理。
 
+#### 玻璃外观与辅助功能
+
+宿主消息的可选 `appearance.reduceTransparency` / `appearance.increaseContrast` 只接受布尔值，`common.js` 将它们映射为 `<html>` 的 `data-reduce-transparency` / `data-increase-contrast`（`"true"` 或 `"false"`），并派发 `songloft-theme-appearance-change`。字段缺失或格式无效时移除属性，表示宿主未提供信息；这些偏好不写入 localStorage，也不从上次宿主会话恢复。插件应将宿主偏好与浏览器 `prefers-reduced-transparency` / `prefers-contrast` 作 OR，并在减少透明度、增强对比度或不支持模糊时提供实心背景。
+
+Lynx 客户端发送有效材质及这两个标志，并在材质档位、主题包和辅助功能变化时同步整份主题消息。Flutter 客户端也发送有效偏好：减少透明度按设备保存，增强对比度取本机开关与 Flutter 系统高对比度信号的 OR；原生 WebView 与 Web iframe 均随主题重建推送，旧版 Flutter 消息仍兼容上述缺省规则。`--sl-theme-glass-fill` 是宿主材质色，不保证插件文字在任意背景上的对比度；浮动播放器应保护自身填充和文字对比度，并把模糊放在独立装饰层，避免改变 fixed 弹层的包含块。
+
+公共桥接回归测试：`node --test scripts/tests/plugin-theme-appearance.test.mjs`。
+
 #### 变量清单
 
 `--md-*` 与 Flutter 的 `ColorScheme` 字段**逐一对应**（camelCase → kebab-case），方便两侧对照：

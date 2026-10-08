@@ -100,7 +100,9 @@
         navigationRadius: 12,
         playerGradient: [],
         glassFill: null,
-        glassBorder: null
+        glassBorder: null,
+        reduceTransparency: null,
+        increaseContrast: null
     };
 
     function normalizeRadius(value, fallback) {
@@ -137,14 +139,20 @@
             navigationRadius: normalizeRadius(source.navigationRadius, DEFAULT_THEME_APPEARANCE.navigationRadius),
             playerGradient: gradient,
             glassFill: normalizeOptionalColor(source.glassFill),
-            glassBorder: normalizeOptionalColor(source.glassBorder)
+            glassBorder: normalizeOptionalColor(source.glassBorder),
+            reduceTransparency: typeof source.reduceTransparency === 'boolean' ? source.reduceTransparency : null,
+            increaseContrast: typeof source.increaseContrast === 'boolean' ? source.increaseContrast : null
         };
     }
 
     function readPersistedThemeAppearance() {
         try {
             var raw = localStorage.getItem(THEME_APPEARANCE_STORAGE_KEY);
-            return raw ? normalizeThemeAppearance(JSON.parse(raw)) : DEFAULT_THEME_APPEARANCE;
+            var restored = raw ? normalizeThemeAppearance(JSON.parse(raw)) : DEFAULT_THEME_APPEARANCE;
+            // Accessibility belongs to the current host session, never a cached host.
+            restored.reduceTransparency = null;
+            restored.increaseContrast = null;
+            return restored;
         } catch (e) {
             return DEFAULT_THEME_APPEARANCE;
         }
@@ -204,13 +212,24 @@
         var normalized = normalizeThemeAppearance(appearance);
         lastThemeAppearance = normalized;
         try {
-            localStorage.setItem(THEME_APPEARANCE_STORAGE_KEY, JSON.stringify(normalized));
+            var persisted = Object.assign({}, normalized);
+            delete persisted.reduceTransparency;
+            delete persisted.increaseContrast;
+            localStorage.setItem(THEME_APPEARANCE_STORAGE_KEY, JSON.stringify(persisted));
         } catch (e) {
             // ignore
         }
 
         var de = document.documentElement;
         if (!de || !de.style || typeof de.style.setProperty !== 'function') return;
+        ['reduceTransparency', 'increaseContrast'].forEach(function(key) {
+            var attribute = key === 'reduceTransparency' ? 'data-reduce-transparency' : 'data-increase-contrast';
+            if (typeof normalized[key] === 'boolean') {
+                de.setAttribute(attribute, String(normalized[key]));
+            } else {
+                de.removeAttribute(attribute);
+            }
+        });
         de.setAttribute('data-navigation-style', normalized.navigationStyle);
         de.style.setProperty('--sl-theme-card-radius', normalized.cardRadius + 'px');
         de.style.setProperty('--sl-theme-control-radius', normalized.controlRadius + 'px');
