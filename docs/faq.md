@@ -30,6 +30,55 @@ A:
 **Flutter 客户端**：
 - Android、iOS、macOS、Windows、Linux、Web（6 个平台）
 
+<span id="docker-armv7-seccomp"></span>
+
+### Q: ARMv7 / Armbian 上 Docker 启动报 `futexwakeup ... returned -1`、`SIGSEGV` 怎么办？
+
+A: 旧版 Armbian / Debian 等 ARMv7（32 位）宿主机的 libseccomp 可能无法识别 `futex_time64` 等系统调用，导致容器在默认 seccomp 配置下启动崩溃，甚至执行 `-version` 也失败。遇到这些日志时，可按以下步骤排查，不能仅凭 `SIGSEGV` 就认定是这个原因。
+
+**1. 查看宿主机环境**（以下命令在宿主机执行）：
+
+```bash
+uname -m
+docker version
+runc --version
+```
+
+重点查看 `runc --version` 输出中的 `libseccomp` 版本。Debian / Ubuntu 系统还可以执行 `dpkg-query -W libseccomp2` 和 `apt-cache policy libseccomp2`，查看已安装版本及软件源中的可用版本。
+
+**2. 对照测试默认 seccomp 与临时关闭 seccomp**：
+
+假设现有容器名为 `songloft`（其他名称请替换）。以下命令直接使用该容器的镜像 ID，无需下载镜像，也不挂载音乐或数据目录；每行是一条独立命令。
+
+```bash
+songloft_image_id=$(docker inspect --format '{{.Image}}' songloft)
+docker run --rm --entrypoint /app/songloft "$songloft_image_id" -version
+docker run --rm --security-opt seccomp=unconfined --entrypoint /app/songloft "$songloft_image_id" -version
+```
+
+如果默认配置下崩溃、临时关闭 seccomp 后正常输出版本，说明启动失败与 seccomp 限制有关，接下来检查宿主机 libseccomp、Docker / runc 及自定义 seccomp 规则。`seccomp=unconfined` 会关闭系统调用过滤，**仅用于临时定位，不建议作为长期运行配置**。
+
+**3. 升级宿主机组件后，在默认 seccomp 下重新验证**：
+
+优先通过当前发行版支持的软件源升级 libseccomp；旧版 Docker / runc 或自定义规则也可能需要更新。升级的是**宿主机组件**，仅更新 Songloft 镜像不能解决宿主机 libseccomp 过旧的问题。
+
+[Issue #507](https://github.com/songloft-org/songloft/issues/507) 中，Debian 10（buster）ARMv7 宿主机使用 Docker 24.0.5、runc 1.1.8、libseccomp 2.3.3。其软件源已有 `libseccomp2 2.5.1-1~bpo10+1` 的 buster-backports 包，在宿主机以 root（或加 `sudo`）执行以下命令后恢复正常：
+
+```bash
+apt-get install libseccomp2/buster-backports
+```
+
+这条安装命令**仅适用于已配置相应软件源且该包可用的 Debian 10 环境**，不要照搬到其他发行版。2.5.1 是该案例验证成功的版本，不代表所有环境的最低版本要求。
+
+升级后，先确认 `runc --version` 中的 libseccomp 版本也已更新，再执行上面默认 seccomp 下的 `-version` 命令。正常输出版本后，重启原有容器并检查启动日志（重启会短暂中断服务）：
+
+```bash
+docker restart songloft
+docker logs --tail 50 songloft
+```
+
+该用户升级 libseccomp 到 2.5.1 后，同一个 Songloft v2.13.1 镜像在默认 seccomp 下通过版本检查，完整服务也成功启动，见[成功反馈](https://github.com/songloft-org/songloft/issues/507#issuecomment-6072549900)。
+
 ### Q: Docker 部署时容器无法访问音乐文件怎么办？
 
 A: 确保使用绝对路径挂载卷：

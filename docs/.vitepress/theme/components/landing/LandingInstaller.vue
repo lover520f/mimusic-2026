@@ -154,7 +154,13 @@ function selectOS(os: string) {
             </div>
           </template>
 
-          <p v-if="method.note" class="method-note">{{ pick(method.note, lang) }}</p>
+          <p v-if="method.note" class="method-note">
+            {{ pick(method.note, lang) }}
+            <a
+              v-if="method.noteLink"
+              :href="typeof method.noteLink.url === 'string' ? method.noteLink.url : withBase(pick(method.noteLink.url, lang))"
+            >{{ pick(method.noteLink.label, lang) }}</a>
+          </p>
         </div>
       </div>
 
@@ -309,6 +315,7 @@ function selectOS(os: string) {
   border-radius: 10px;
   background: var(--vp-c-bg-alt);
 }
+.method-note a { color: var(--vp-c-brand-1); font-weight: 600; }
 .install-docs {
   text-align: center;
   margin-top: 22px;

@@ -275,6 +275,8 @@ $env:ADMIN_PASSWORD = "your_strong_password"
 
 ### 🐳 Option 2: Docker Deployment
 
+> **ARMv7 users**: An outdated host libseccomp on older Armbian / Debian systems may cause the container to crash at startup. If you see `futexwakeup` / `SIGSEGV`, see the [FAQ troubleshooting steps](https://songloft.hanxi.cc/en/faq#docker-armv7-seccomp).
+
 #### 🌐 Pull from Docker Hub (Recommended)
 
 ```bash

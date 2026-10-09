@@ -275,6 +275,8 @@ $env:ADMIN_PASSWORD = "your_strong_password"
 
 ### 🐳 方式二：Docker 部署
 
+> **ARMv7 用户**：旧版 Armbian / Debian 的宿主机 libseccomp 可能导致容器启动崩溃。遇到 `futexwakeup` / `SIGSEGV` 时，请参阅 [FAQ 排查步骤](https://songloft.hanxi.cc/faq#docker-armv7-seccomp)。
+
 #### 🌐 从 Docker Hub 拉取（推荐）
 
 ```bash

@@ -43,6 +43,7 @@ export interface InstallMethod {
   icon: string
   kind: 'download' | 'command' | 'external'
   note?: L
+  noteLink?: ExternalLink
   editions?: Edition[]
   groups?: OSGroup[]
   commands?: CommandBlock[]
@@ -120,6 +121,14 @@ export const INSTALL: InstallMethod[] = [
     tagline: { zh: '一行命令拉起容器', en: 'One-line container' },
     icon: 'docker',
     kind: 'command',
+    note: {
+      zh: 'ARMv7 用户：旧版 Armbian / Debian 的宿主机 libseccomp 可能导致容器启动崩溃。遇到 futexwakeup / SIGSEGV 时，请参阅 FAQ 排查步骤。',
+      en: 'ARMv7 users: An outdated host libseccomp on older Armbian / Debian systems may cause the container to crash at startup. If you see futexwakeup / SIGSEGV, see the FAQ troubleshooting steps.',
+    },
+    noteLink: {
+      label: { zh: 'FAQ 排查步骤', en: 'FAQ troubleshooting steps' },
+      url: { zh: '/faq#docker-armv7-seccomp', en: '/en/faq#docker-armv7-seccomp' },
+    },
     commands: [
       {
         group: { zh: '方式 A · docker run', en: 'Option A · docker run' },

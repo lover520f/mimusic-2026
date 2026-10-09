@@ -30,6 +30,55 @@ A:
 **Flutter client**:
 - Android, iOS, macOS, Windows, Linux, Web (6 platforms)
 
+<span id="docker-armv7-seccomp"></span>
+
+### Q: What if Docker on ARMv7 / Armbian fails to start with `futexwakeup ... returned -1` or `SIGSEGV`?
+
+A: The host's libseccomp on older ARMv7 (32-bit) systems such as Armbian / Debian may not recognize system calls such as `futex_time64`. This can cause the container to crash under the default seccomp profile, even when running `-version`. If you see these logs, follow the steps below; `SIGSEGV` alone does not establish this cause.
+
+**1. Check the host environment** (run the following commands on the host):
+
+```bash
+uname -m
+docker version
+runc --version
+```
+
+Check the `libseccomp` version in the output of `runc --version`. On Debian / Ubuntu, you can also run `dpkg-query -W libseccomp2` and `apt-cache policy libseccomp2` to check the installed version and versions available in your package repositories.
+
+**2. Compare the default seccomp profile with seccomp temporarily disabled**:
+
+These commands assume the existing container is named `songloft`; replace it if needed. They use that container's image ID directly, without downloading an image or mounting music or data directories. Each line is a separate command.
+
+```bash
+songloft_image_id=$(docker inspect --format '{{.Image}}' songloft)
+docker run --rm --entrypoint /app/songloft "$songloft_image_id" -version
+docker run --rm --security-opt seccomp=unconfined --entrypoint /app/songloft "$songloft_image_id" -version
+```
+
+If the default profile crashes but disabling seccomp prints the version successfully, the startup failure is related to seccomp restrictions. Next, check the host's libseccomp, Docker / runc, and any custom seccomp rules. `seccomp=unconfined` disables system call filtering; **use it only for temporary diagnosis, not as a permanent configuration**.
+
+**3. Upgrade host components and verify again under the default seccomp profile**:
+
+Prefer upgrading libseccomp through package repositories supported by your distribution. Older Docker / runc versions or custom rules may also need updating. These are **host components**; updating the Songloft image alone cannot fix an outdated host libseccomp.
+
+In [Issue #507](https://github.com/songloft-org/songloft/issues/507), a Debian 10 (buster) ARMv7 host was running Docker 24.0.5, runc 1.1.8, and libseccomp 2.3.3. Its repositories already provided the buster-backports package `libseccomp2 2.5.1-1~bpo10+1`. Running the following command on the host as root (or with `sudo`) resolved the problem:
+
+```bash
+apt-get install libseccomp2/buster-backports
+```
+
+This installation command **only applies to Debian 10 environments with the appropriate repository configured and the package available**; do not copy it to other distributions. Version 2.5.1 was verified in this case and is not a universal minimum version requirement.
+
+After upgrading, confirm that the libseccomp version shown by `runc --version` has also changed. Then repeat the `-version` command above using the default seccomp profile. If it prints the version successfully, restart the original container and check the startup logs (restarting briefly interrupts the service):
+
+```bash
+docker restart songloft
+docker logs --tail 50 songloft
+```
+
+After upgrading libseccomp to 2.5.1, the same Songloft v2.13.1 image passed the version check under the default seccomp profile, and the full service started successfully. See the [success report](https://github.com/songloft-org/songloft/issues/507#issuecomment-6072549900).
+
 ### Q: What should I do if the container can't access music files during Docker deployment?
 
 A: Make sure you mount volumes using absolute paths:
